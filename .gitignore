@@ -5,3 +5,6 @@ node_modules
 
 # TypeScript
 *.tsbuildinfo
+
+# Generated from resources.ts (don't commit)
+resources.js

@@ -10,6 +10,8 @@ $ tree -a -I '__pycache__|*.pyc|node_modules|dist|.pnpm|coverage|.venv|venv|*.lo
 
 .
 ├── .cursor
+│   └── rules
+│       └── tree.mdc
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -20,20 +22,34 @@ $ tree -a -I '__pycache__|*.pyc|node_modules|dist|.pnpm|coverage|.venv|venv|*.lo
 ├── package.json
 ├── README.md
 ├── resources.js
+├── resources.ts
 ├── schema.graphql
 ├── scripts
-│   └── generate-tree-rule.js
+│   ├── generate-tree-rule.js
+│   └── seed.ts
 ├── src
-│   ├── App.css
 │   ├── App.tsx
+│   ├── config.ts
+│   ├── index.css
+│   ├── lib
+│   │   └── s3Client.ts
 │   ├── main.tsx
+│   ├── pages
+│   │   ├── Components.tsx
+│   │   ├── Convos.tsx
+│   │   └── Dashboards.tsx
+│   ├── services
+│   │   └── conversationService.ts
+│   ├── types
+│   │   ├── harperdb.d.ts
+│   │   ├── schema.js
+│   │   └── schema.ts
 │   └── vite-env.d.ts
 ├── tsconfig.json
 ├── vite.config.ts
 └── web
-    ├── assets
-    │   ├── index-B5dkSqVi.css
-    │   └── index-CFx7d64v.js
+    ├── index-By3LOJ0Y.css
+    ├── index-DpdHOFxQ.js
     └── index.html
 
-6 directories, 21 files
+10 directories, 33 files

@@ -1,10 +1,24 @@
 ## Here we can define any tables in our database. This example shows how we define a type as a table using
 ## the type name as the table name and specifying it is an "export" available in the REST and other external protocols.
 
-type Dog @table @export {
+type Conversation @table @export {
 	id: ID @primaryKey
-	name: String
-	breed: String
-	age: Int
-	tricks: [String]
+	convo_title: String
+	convo_video_s3_link: String
+	convo_word_transcript_s3_link: String
+	convo_readable_transcript_s3_link: String
+	convo_json_transcript_s3_link: String
+	status: String
+	createdAt: DateTime
+}
+
+type Component @table @export {
+	id: ID @primaryKey
+	component_name: String
+	component_type: String
+	prompt: String
+	code: String
+	structuredOutput: String
+	uiCode: String
+	createdAt: DateTime
 }
