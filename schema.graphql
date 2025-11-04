@@ -1,0 +1,10 @@
+## Here we can define any tables in our database. This example shows how we define a type as a table using
+## the type name as the table name and specifying it is an "export" available in the REST and other external protocols.
+
+type Dog @table @export {
+	id: ID @primaryKey
+	name: String
+	breed: String
+	age: Int
+	tricks: [String]
+}

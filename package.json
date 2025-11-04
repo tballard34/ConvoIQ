@@ -1,0 +1,13 @@
+{
+  "name": "application-template",
+  "version": "1.0.0",
+  "description": "A template for building HarperDB applications",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "harperdb run .",
+    "dev": "harperdb dev .",
+    "login": "bash -c 'read -r -p \"Cluster URL: \" URL; read -r -p \"Cluster Username: \" USERNAME; read -r -s -p \"Cluster Password: \" PASSWORD; echo; printf \"CLI_TARGET='%s'\\nCLI_TARGET_USERNAME='%s'\\nCLI_TARGET_PASSWORD='%s'\\n\" \"$URL\" \"$USERNAME\" \"$PASSWORD\" > .env'",
+    "deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
+  }
+}
