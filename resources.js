@@ -87,19 +87,19 @@ function createJsonTranscript(words, gap = 0.8) {
     return turns;
 }
 // Backend configuration from environment variables
-// Shared config: Read from VITE_* vars (same as frontend)
-const AWS_REGION = process.env.VITE_AWS_REGION || 'us-east-1';
-const S3_ACCESS_KEY_ID = process.env.VITE_S3_ACCESS_KEY_ID;
-const S3_SECRET_ACCESS_KEY = process.env.VITE_S3_SECRET_ACCESS_KEY;
-const S3_CONVOS_BUCKET_NAME = process.env.VITE_S3_CONVOS_BUCKET_NAME;
-// Backend-only secrets: No VITE_ prefix
+// Backend-only secrets: No VITE_ prefix (not exposed to frontend)
+const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
+// Shared config: Frontend can see these (VITE_ prefix)
+const S3_CONVOS_BUCKET_NAME = process.env.VITE_S3_CONVOS_BUCKET_NAME;
 // Validate required environment variables
 if (!DEEPGRAM_API_KEY) {
     console.warn('⚠️ Missing environment variable: DEEPGRAM_API_KEY (transcription will not work)');
 }
 if (!S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY) {
-    console.warn('⚠️ Missing environment variables: VITE_S3_ACCESS_KEY_ID, VITE_S3_SECRET_ACCESS_KEY (S3 operations will not work)');
+    console.warn('⚠️ Missing environment variables: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY (S3 operations will not work)');
 }
 // Lazy initialize clients only when needed
 let deepgram = null;
