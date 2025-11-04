@@ -3,8 +3,5 @@ node_modules
 .env
 /.DS_Store
 
-# Vite build output (Harper serves this folder)
-web/*
-
 # TypeScript
 *.tsbuildinfo
