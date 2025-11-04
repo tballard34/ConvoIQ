@@ -1,7 +1,7 @@
 {
-  "name": "application-template",
+  "name": "convoiq",
   "version": "1.0.0",
-  "description": "A template for building HarperDB applications",
+  "description": "ConvoIQ - AI-powered conversation analysis tool",
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {

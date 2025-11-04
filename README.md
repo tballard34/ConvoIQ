@@ -1,6 +1,6 @@
-# Your New Harper Fabric App
+# ConvoIQ
 
-This is a template for building [Harper](https://www.harper.fast/) applications. You can download this repository as a starting point for building applications with Harper.
+AI-powered conversation analysis tool built with [Harper](https://www.harper.fast/).
 
 ## Installation
 
