@@ -1,0 +1,39 @@
+---
+globs: *
+alwaysApply: false
+---
+Below is the file tree structure for this repository
+
+```
+$ tree -a -I '__pycache__|*.pyc|node_modules|dist|.pnpm|coverage|.venv|venv|*.log|.DS_Store|Thumbs.db|.ruff_cache|.pytest_cache|.tanstack|.webpack|.git'
+```
+
+.
+├── .cursor
+├── .env
+├── .env.example
+├── .gitignore
+├── config.yaml
+├── index.html
+├── LICENSE
+├── package-lock.json
+├── package.json
+├── README.md
+├── resources.js
+├── schema.graphql
+├── scripts
+│   └── generate-tree-rule.js
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── tsconfig.json
+├── vite.config.ts
+└── web
+    ├── assets
+    │   ├── index-B5dkSqVi.css
+    │   └── index-CFx7d64v.js
+    └── index.html
+
+6 directories, 21 files

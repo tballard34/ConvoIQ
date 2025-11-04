@@ -2,3 +2,9 @@ node_modules
 .idea
 .env
 /.DS_Store
+
+# Vite build output (Harper serves this folder)
+web/*
+
+# TypeScript
+*.tsbuildinfo
