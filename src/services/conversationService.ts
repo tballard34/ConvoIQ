@@ -109,6 +109,99 @@ export async function uploadConversation(file: File): Promise<void> {
 }
 
 /**
+ * Fetch a single conversation by ID
+ */
+export async function fetchConversationById(id: string): Promise<Conversation | null> {
+  try {
+    const response = await fetch(`${config.harperdbUrl}/Conversation/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    return null;
+  }
+}
+
+/**
+ * Update a conversation
+ */
+export async function updateConversation(conversation: Conversation): Promise<void> {
+  try {
+    const response = await fetch(`${config.harperdbUrl}/Conversation/${conversation.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(conversation)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to update conversation: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error updating conversation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a conversation by ID
+ */
+export async function deleteConversation(id: string): Promise<void> {
+  try {
+    const response = await fetch(`${config.harperdbUrl}/Conversation/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete conversation: ${response.statusText}`);
+    }
+    
+    console.log('Conversation deleted successfully');
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate a conversation title using AI with a 25-second timeout
+ */
+export async function generateConversationTitle(
+  conversationId: string
+): Promise<{ thinking: string; title: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+  
+  try {
+    const response = await fetch(`${config.harperdbUrl}/GenerateConversationTitle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate title: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return { thinking: data.thinking, title: data.title };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Title generation timed out after 25 seconds');
+    }
+    throw error;
+  }
+}
+
+/**
  * Get a presigned URL for viewing an S3 object (e.g., thumbnail)
  */
 export async function getS3ViewUrl(s3Link: string): Promise<string | null> {

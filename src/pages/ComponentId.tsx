@@ -132,6 +132,7 @@ export default function ComponentId() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvoId, setSelectedConvoId] = useState<string>('');
   const [publishing, setPublishing] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
 
   // Monaco Editor refs
@@ -203,10 +204,13 @@ export default function ComponentId() {
       await componentService.updateComponent(updatedComponent);
       setComponent(updatedComponent);
       console.log('Component published');
+      
+      setPublishing(false);
+      setJustPublished(true);
+      setTimeout(() => setJustPublished(false), 2000);
     } catch (error) {
       console.error('Failed to publish component:', error);
       alert('Failed to publish component');
-    } finally {
       setPublishing(false);
     }
   }
@@ -301,10 +305,15 @@ export default function ComponentId() {
 
         <button
           onClick={handlePublish}
-          disabled={publishing}
-          className="flex-shrink-0 rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={publishing || justPublished}
+          className="flex-shrink-0 rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
         >
-          {publishing ? 'Publishing...' : 'Publish'}
+          {justPublished && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {publishing ? 'Publishing...' : justPublished ? 'Published' : 'Publish'}
         </button>
       </div>
 
@@ -333,7 +342,7 @@ export default function ComponentId() {
                 <button
                   onClick={handleGenerateTitle}
                   disabled={generatingTitle}
-                  className="group rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+                  className="group rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
                   title={generatingTitle ? 'Generating title...' : 'Generate component title with AI'}
                 >
                   <TbSparkles className={`h-6 w-6 ${generatingTitle ? 'animate-spin' : ''}`} />
@@ -508,7 +517,7 @@ export default function ComponentId() {
               />
               <button
                 disabled
-                className="whitespace-nowrap rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white opacity-50 cursor-not-allowed"
+                className="whitespace-nowrap rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white opacity-50"
               >
                 Generate
               </button>

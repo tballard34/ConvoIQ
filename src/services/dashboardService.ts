@@ -103,3 +103,37 @@ export async function updateDashboard(dashboard: Dashboard): Promise<void> {
   }
 }
 
+/**
+ * Generate a dashboard title using AI with a 15-second timeout
+ */
+export async function generateDashboardTitle(
+  dashboardId: string
+): Promise<{ thinking: string; title: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+  
+  try {
+    const response = await fetch(`${config.harperdbUrl}/GenerateDashboardTitle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dashboardId }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate title: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return { thinking: data.thinking, title: data.title };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Title generation timed out after 15 seconds');
+    }
+    throw error;
+  }
+}
+

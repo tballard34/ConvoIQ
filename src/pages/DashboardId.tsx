@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import type { Dashboard } from '../types/schema';
+import type { Dashboard, Conversation } from '../types/schema';
 import * as dashboardService from '../services/dashboardService';
+import * as conversationService from '../services/conversationService';
+import DashboardIdView from '../components/DashboardIdView';
+import DashboardIdEdit from '../components/DashboardIdEdit';
+import Dropdown from '../components/Dropdown';
 
 export default function DashboardId() {
   const { id } = useParams<{ id: string }>();
@@ -9,9 +13,14 @@ export default function DashboardId() {
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConvoId, setSelectedConvoId] = useState<string>('conv-1762362893983');
 
   useEffect(() => {
     loadDashboard();
+    loadConversations();
   }, [id]);
 
   async function loadDashboard() {
@@ -27,23 +36,42 @@ export default function DashboardId() {
     setLoading(false);
   }
 
+  async function loadConversations() {
+    const data = await conversationService.fetchConversations();
+    setConversations(data);
+  }
+
+  function handleDashboardUpdate(updatedDashboard: Dashboard) {
+    setDashboard(updatedDashboard);
+  }
+
   async function handlePublish() {
     if (!dashboard) return;
+    
+    setPublishing(true);
     
     try {
       const updatedDashboard: Dashboard = {
         ...dashboard,
         status: 'published'
       };
-      
       await dashboardService.updateDashboard(updatedDashboard);
       setDashboard(updatedDashboard);
-      setIsEditMode(false);
-      console.log('Dashboard published');
+      console.log('Dashboard published successfully');
+      
+      setPublishing(false);
+      setJustPublished(true);
+      setTimeout(() => setJustPublished(false), 2000);
     } catch (error) {
       console.error('Failed to publish dashboard:', error);
       alert('Failed to publish dashboard');
+      setPublishing(false);
     }
+  }
+
+  function handleGenerate() {
+    // TODO: Implement pipeline generation
+    console.log('Generate dashboard clicked');
   }
 
   if (loading) {
@@ -94,53 +122,60 @@ export default function DashboardId() {
             </button>
           </div>
           
-          {dashboard.status === 'draft' && (
-            <span className="flex-shrink-0 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-              Draft
-            </span>
-          )}
+          {/* Conversation Selector */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Conversation:
+            </label>
+            <Dropdown
+              items={conversations}
+              value={selectedConvoId}
+              onSelect={setSelectedConvoId}
+              getLabel={(convo) => convo.convo_title}
+              getId={(convo) => convo.id}
+              placeholder="Select a convo..."
+              truncateLength={30}
+            />
+          </div>
         </div>
 
-        <div className="flex-shrink-0" style={{ width: '89px' }}>
+        <div className="flex items-center gap-3">
           {isEditMode && (
             <button
               onClick={handlePublish}
-              className="rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 transition-colors"
+              disabled={publishing || justPublished}
+              className="rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              Publish
+              {justPublished && (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {publishing ? 'Publishing...' : justPublished ? 'Published' : 'Publish'}
             </button>
           )}
+          
+          <button
+            onClick={handleGenerate}
+            disabled={true}
+            className="rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:hover:bg-gray-900"
+          >
+            Generate
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto bg-gray-50 p-8">
+      {/* Route between View and Edit components */}
+      <div className="flex-1 overflow-hidden">
         {isEditMode ? (
-          // Edit Mode
-          <div className="mx-auto max-w-7xl">
-            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center">
-              <p className="text-lg text-gray-500">Edit Mode</p>
-              <p className="mt-2 text-sm text-gray-400">
-                Dashboard layout editor coming soon...
-              </p>
-              <p className="mt-4 text-xs text-gray-400">
-                {dashboard.layout.length} component{dashboard.layout.length !== 1 ? 's' : ''} in layout
-              </p>
-            </div>
-          </div>
+          <DashboardIdEdit
+            dashboard={dashboard}
+            onDashboardUpdate={handleDashboardUpdate}
+          />
         ) : (
-          // View Mode
-          <div className="mx-auto max-w-7xl">
-            <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-              <p className="text-lg text-gray-500">View Mode</p>
-              <p className="mt-2 text-sm text-gray-400">
-                Dashboard rendering coming soon...
-              </p>
-              <p className="mt-4 text-xs text-gray-400">
-                {dashboard.layout.length} component{dashboard.layout.length !== 1 ? 's' : ''} in layout
-              </p>
-            </div>
-          </div>
+          <DashboardIdView
+            dashboard={dashboard}
+          />
         )}
       </div>
     </div>

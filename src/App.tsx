@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Convos from './pages/Convos';
+import ConvoId from './pages/ConvoId';
 import Components from './pages/Components';
 import ComponentId from './pages/ComponentId';
 import Dashboards from './pages/Dashboards';
@@ -12,6 +13,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Convos />} />
+          <Route path="/convos/:id" element={<ConvoId />} />
           <Route path="/components" element={<Components />} />
           <Route path="/components/:id" element={<ComponentId />} />
           <Route path="/dashboards" element={<Dashboards />} />

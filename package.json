@@ -9,7 +9,7 @@
     "dev": "npm run build && harperdb dev .",
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "vite build",
-    "build:backend": "tsc backend/agent-prompts.ts backend/agent-tools.ts backend/resources.ts backend/routes/spa-fallback.ts --outDir operations --rootDir . --module ESNext --target ES2022 --moduleResolution node --skipLibCheck --allowSyntheticDefaultImports",
+    "build:backend": "tsc backend/agent-prompts.ts backend/agent-tools.ts backend/title-generators.ts backend/resources.ts backend/routes/spa-fallback.ts --outDir operations --rootDir . --module ESNext --target ES2022 --moduleResolution node --skipLibCheck --allowSyntheticDefaultImports",
     "preview": "vite preview",
     "seed": "tsx scripts/seed.ts",
     "seed:convos": "tsx scripts/seed-convos.ts",
@@ -33,6 +33,7 @@
     "react-dropzone": "^14.3.8",
     "react-icons": "^5.5.0",
     "react-resizable-panels": "^3.0.6",
+    "react-rnd": "^10.5.2",
     "react-router-dom": "^7.9.5",
     "tailwindcss": "^4.1.16"
   },

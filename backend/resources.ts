@@ -592,87 +592,179 @@ export class GenerateComponentTitle extends Resource {
 		const { prompt, structuredOutput, uiCode } = body;
 
 		try {
-			const client = getOpenRouterClient();
-			if (!client) {
-				throw new Error('OpenRouter client not initialized. Check OPENROUTER_API_KEY environment variable.');
+			if (!OPENROUTER_API_KEY) {
+				throw new Error('OPENROUTER_API_KEY not set in environment variables.');
 			}
 
-			// Build context for the LLM
-			const componentContext = `Component Details:
-- Prompt: ${prompt || '(empty)'}
-- Structured Output Schema: ${structuredOutput || '(empty)'}
-- UI Code: ${uiCode || '(empty)'}
-
-Analyze these component details and generate a concise, descriptive title (3-6 words).`;
-
-			console.log('🤖 Calling OpenRouter LLM...');
+			// Import title generator
+			const { generateComponentTitle } = await import('./title-generators.js');
 			
-			// @ts-ignore - SDK types don't include provider/responseFormat yet, but API supports it per docs
-			const completion = await client.chat.send({
-				model: 'openai/gpt-oss-120b',
-				messages: [
-					{
-						role: 'system',
-						content: 'You are an AI that generates concise, descriptive titles for data components. Analyze the component details and provide your reasoning and a title.'
-					},
-					{
-						role: 'user',
-						content: componentContext
-					}
-				],
-				provider: {
-					sort: 'throughput',
-				},
-				responseFormat: {
-					type: 'json_schema',
-					jsonSchema: {
-						name: 'component_title_response',
-						strict: true,
-						schema: {
-							type: 'object',
-							properties: {
-								thinking: {
-									type: 'string',
-									description: 'Your reasoning for why this title captures what the component does'
-								},
-								title: {
-									type: 'string',
-									description: 'A concise, descriptive title (2-6 words) that describes what the component does'
-								}
-							},
-							required: ['thinking', 'title'],
-							additionalProperties: false
-						}
-					}
-				},
-				temperature: 0.5,
-				maxTokens: 1000,
-				stream: false,
-			});
-
-			const content = completion.choices?.[0]?.message?.content;
-			
-			if (!content || typeof content !== 'string') {
-				throw new Error('No content returned from LLM');
-			}
-
-			// Parse the structured JSON response
-			const parsed = JSON.parse(content);
-			
-			if (!parsed.title || !parsed.thinking) {
-				throw new Error('Invalid structured output: missing title or thinking');
-			}
-
-			console.log(`✅ Generated title: "${parsed.title}"`);
-			console.log(`💭 Thinking: "${parsed.thinking}"`);
-
-			return { 
-				thinking: parsed.thinking,
-				title: parsed.title 
-			};
+			// Generate title using extracted function (now using API key directly)
+			return await generateComponentTitle(OPENROUTER_API_KEY, prompt, structuredOutput, uiCode);
 
 		} catch (error: any) {
 			console.error('❌ Failed to generate component title:', error);
+			throw new Error(`Failed to generate title: ${error.message}`);
+		}
+	}
+}
+
+// Generate conversation title using AI
+// Usage: POST /GenerateConversationTitle with body { conversationId: string }
+export class GenerateConversationTitle extends Resource {
+	static loadAsInstance = true;
+
+	async post(body: {
+		conversationId: string;
+	}): Promise<{ thinking: string; title: string }> {
+		console.log('✨ GenerateConversationTitle received request');
+		
+		const { conversationId } = body;
+
+		try {
+			if (!OPENROUTER_API_KEY) {
+				throw new Error('OPENROUTER_API_KEY not set in environment variables.');
+			}
+
+			const s3 = getS3Client();
+			if (!s3) {
+				throw new Error('S3 client not initialized. Check AWS credentials in environment variables.');
+			}
+
+			// 1. Fetch conversation from database
+			console.log(`📥 Fetching conversation: ${conversationId}`);
+			const conversationResponse = await fetch(
+				`${process.env.VITE_HARPERDB_URL || 'http://localhost:9926'}/Conversation/${conversationId}`
+			);
+			
+			if (!conversationResponse.ok) {
+				throw new Error(`Failed to fetch conversation: ${conversationResponse.statusText}`);
+			}
+			
+			const conversation = await conversationResponse.json();
+			
+			if (!conversation.convo_readable_transcript_s3_link) {
+				throw new Error('No readable transcript found for this conversation');
+			}
+
+			// 2. Get readable transcript from S3
+			console.log('📄 Fetching readable transcript from S3...');
+			const s3Key = conversation.convo_readable_transcript_s3_link.replace(`s3://${S3_CONVOS_BUCKET_NAME}/`, '');
+			
+			const getObjectCommand = new GetObjectCommand({
+				Bucket: S3_CONVOS_BUCKET_NAME,
+				Key: s3Key,
+			});
+			
+			const s3Response = await s3.send(getObjectCommand);
+			const readableTranscript = await s3Response.Body?.transformToString();
+			
+			if (!readableTranscript) {
+				throw new Error('Failed to read transcript from S3');
+			}
+
+			console.log(`📊 Transcript length: ${readableTranscript.length} characters`);
+
+			// 3. Generate title using full transcript (now using API key directly)
+			const { generateConversationTitle } = await import('./title-generators.js');
+			return await generateConversationTitle(OPENROUTER_API_KEY, readableTranscript);
+
+		} catch (error: any) {
+			console.error('❌ Failed to generate conversation title:', error);
+			throw new Error(`Failed to generate title: ${error.message}`);
+		}
+	}
+}
+
+// Format dashboard title with timestamp
+function formatDashboardTitle(createdAt: string): string {
+	const date = new Date(createdAt);
+	const options: Intl.DateTimeFormatOptions = {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	};
+	const formatted = date.toLocaleString('en-US', options);
+	return `Dashboard - ${formatted}`;
+}
+
+// Generate dashboard title using AI
+// Usage: POST /GenerateDashboardTitle with body { dashboardId: string }
+export class GenerateDashboardTitle extends Resource {
+	static loadAsInstance = true;
+
+	async post(body: {
+		dashboardId: string;
+	}): Promise<{ thinking: string; title: string }> {
+		console.log('✨ GenerateDashboardTitle received request');
+		
+		const { dashboardId } = body;
+
+		try {
+			if (!OPENROUTER_API_KEY) {
+				throw new Error('OPENROUTER_API_KEY not set in environment variables.');
+			}
+
+			// 1. Fetch dashboard from database
+			console.log(`📥 Fetching dashboard: ${dashboardId}`);
+			const dashboardResponse = await fetch(
+				`${process.env.VITE_HARPERDB_URL || 'http://localhost:9926'}/Dashboard/${dashboardId}`
+			);
+			
+			if (!dashboardResponse.ok) {
+				throw new Error(`Failed to fetch dashboard: ${dashboardResponse.statusText}`);
+			}
+			
+			const dashboard = await dashboardResponse.json();
+			
+			// Parse layout if it's a string
+			const layout = typeof dashboard.layout === 'string' 
+				? JSON.parse(dashboard.layout) 
+				: dashboard.layout;
+
+			// Check if dashboard is empty - generate timestamp-based title
+			if (!layout || layout.length === 0) {
+				const title = formatDashboardTitle(dashboard.createdAt);
+				console.log(`✅ Generated title for empty dashboard: "${title}"`);
+				return {
+					thinking: 'Dashboard has no components - using creation timestamp',
+					title: title
+				};
+			}
+
+			// 2. Extract component IDs from layout
+			const componentIds = layout.map((item: any) => item.componentId);
+			console.log(`📊 Found ${componentIds.length} components in dashboard`);
+
+			// 3. Fetch all components in parallel
+			console.log('📥 Fetching component details...');
+			const componentPromises = componentIds.map((id: string) =>
+				fetch(`${process.env.VITE_HARPERDB_URL || 'http://localhost:9926'}/Component/${id}`)
+					.then(res => res.ok ? res.json() : null)
+					.catch(() => null)
+			);
+
+			const components = await Promise.all(componentPromises);
+
+			// 4. Extract component titles, filtering out null/failed fetches
+			const componentTitles = components
+				.filter(c => c !== null && c.component_title)
+				.map(c => c.component_title);
+
+			if (componentTitles.length === 0) {
+				throw new Error('No valid components found in dashboard');
+			}
+
+			console.log(`✅ Retrieved ${componentTitles.length} component titles`);
+
+			// 5. Generate title using component titles (now using API key directly)
+			const { generateDashboardTitle } = await import('./title-generators.js');
+			return await generateDashboardTitle(OPENROUTER_API_KEY, componentTitles);
+
+		} catch (error: any) {
+			console.error('❌ Failed to generate dashboard title:', error);
 			throw new Error(`Failed to generate title: ${error.message}`);
 		}
 	}

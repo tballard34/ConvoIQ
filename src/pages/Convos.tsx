@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import type { Conversation } from '../types/schema';
 import * as conversationService from '../services/conversationService';
@@ -36,6 +37,7 @@ function ThumbnailImage({ conversation }: { conversation: Conversation }) {
 }
 
 export default function Convos() {
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -137,7 +139,11 @@ export default function Convos() {
       ) : (
         <div className="grid grid-cols-3 gap-6">
           {conversations.map((convo) => (
-            <div key={convo.id} className="flex flex-col">
+            <div 
+              key={convo.id} 
+              className="flex flex-col cursor-pointer transition-transform hover:scale-[1.02]"
+              onClick={() => navigate(`/convos/${convo.id}`)}
+            >
               {/* Video thumbnail */}
               <ThumbnailImage conversation={convo} />
               

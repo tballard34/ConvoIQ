@@ -88,7 +88,7 @@ export async function updateComponent(component: Component): Promise<void> {
 }
 
 /**
- * Generate a component title using AI with a 10-second timeout
+ * Generate a component title using AI with a 15-second timeout
  */
 export async function generateComponentTitle(
   prompt: string,
@@ -96,7 +96,7 @@ export async function generateComponentTitle(
   uiCode: string
 ): Promise<{ thinking: string; title: string }> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
   
   try {
     const response = await fetch(`${config.harperdbUrl}/GenerateComponentTitle`, {
@@ -117,7 +117,7 @@ export async function generateComponentTitle(
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      throw new Error('Title generation timed out after 10 seconds');
+      throw new Error('Title generation timed out after 15 seconds');
     }
     throw error;
   }

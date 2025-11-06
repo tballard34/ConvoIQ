@@ -3,9 +3,18 @@ import { TbBox, TbLayout } from 'react-icons/tb';
 type EmptyPreviewProps = {
   type?: 'video' | 'component' | 'dashboard';
   text?: string;
+  flexible?: boolean; // If true, uses h-full instead of aspect-video
+  overlayTitle?: string; // If provided, shows title overlay at bottom-left
+  overlaySubtitle?: string; // If provided, shows subtitle overlay at bottom-left
 };
 
-export default function EmptyPreview({ type = 'video', text = 'No Preview' }: EmptyPreviewProps) {
+export default function EmptyPreview({ 
+  type = 'video', 
+  text = 'No Preview',
+  flexible = false,
+  overlayTitle,
+  overlaySubtitle
+}: EmptyPreviewProps) {
   // Different icons for different preview types - matching sidebar icons
   const renderIcon = () => {
     const iconClass = "text-gray-600";
@@ -37,12 +46,32 @@ export default function EmptyPreview({ type = 'video', text = 'No Preview' }: Em
     }
   };
 
+  const containerClass = flexible 
+    ? "h-full w-full rounded-lg bg-gray-900 flex items-center justify-center relative"
+    : "aspect-video w-full rounded-lg bg-gray-900 flex items-center justify-center relative";
+
   return (
-    <div className="aspect-video w-full rounded-lg bg-gray-900 flex items-center justify-center">
+    <div className={containerClass}>
       <div className="flex flex-col items-center justify-center gap-2">
         {renderIcon()}
-        <p className="text-sm text-gray-500">{text}</p>
+        {text && <p className="text-sm text-gray-500">{text}</p>}
       </div>
+      
+      {/* Overlay for title and subtitle at bottom-left */}
+      {(overlayTitle || overlaySubtitle) && (
+        <div className="absolute bottom-3 left-3">
+          {overlayTitle && (
+            <h3 className="text-sm font-medium text-white truncate">
+              {overlayTitle}
+            </h3>
+          )}
+          {overlaySubtitle && (
+            <p className="text-xs text-gray-400 mt-0.5 capitalize">
+              {overlaySubtitle}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
