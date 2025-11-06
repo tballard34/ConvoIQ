@@ -2,6 +2,38 @@ import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import type { Conversation } from '../types/schema';
 import * as conversationService from '../services/conversationService';
+import EmptyPreview from '../components/EmptyPreview';
+
+function ThumbnailImage({ conversation }: { conversation: Conversation }) {
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadThumbnail() {
+      if (conversation.convo_thumbnail_s3_link) {
+        const url = await conversationService.getS3ViewUrl(conversation.convo_thumbnail_s3_link);
+        setThumbnailUrl(url);
+      }
+    }
+    loadThumbnail();
+  }, [conversation.convo_thumbnail_s3_link]);
+
+  return (
+    <div className="relative aspect-video w-full">
+      <EmptyPreview type="video" />
+      {thumbnailUrl && (
+        <img 
+          src={thumbnailUrl} 
+          alt={conversation.convo_title}
+          className={`absolute inset-0 h-full w-full rounded-lg object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setImageLoaded(true)}
+        />
+      )}
+    </div>
+  );
+}
 
 export default function Convos() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -48,7 +80,7 @@ export default function Convos() {
   });
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col p-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Convos</h1>
@@ -106,8 +138,8 @@ export default function Convos() {
         <div className="grid grid-cols-3 gap-6">
           {conversations.map((convo) => (
             <div key={convo.id} className="flex flex-col">
-              {/* Black rectangle placeholder for video preview */}
-              <div className="aspect-video w-full rounded-lg bg-black"></div>
+              {/* Video thumbnail */}
+              <ThumbnailImage conversation={convo} />
               
               {/* Conversation title */}
               <h3 className="mt-3 text-center font-medium text-gray-900">

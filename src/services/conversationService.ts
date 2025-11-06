@@ -108,3 +108,37 @@ export async function uploadConversation(file: File): Promise<void> {
   }
 }
 
+/**
+ * Get a presigned URL for viewing an S3 object (e.g., thumbnail)
+ */
+export async function getS3ViewUrl(s3Link: string): Promise<string | null> {
+  try {
+    // Extract S3 key from s3:// link
+    // Format: s3://bucket-name/key
+    const match = s3Link.match(/s3:\/\/[^/]+\/(.+)/);
+    if (!match) {
+      console.warn('Invalid S3 link format:', s3Link);
+      return null;
+    }
+
+    const s3Key = match[1];
+    if (!s3Key) {
+      console.warn('Empty S3 key extracted from:', s3Link);
+      return null;
+    }
+    
+    const response = await fetch(`${config.harperdbUrl}/GetViewUrl?key=${encodeURIComponent(s3Key)}`);
+    
+    if (!response.ok) {
+      console.warn('Failed to get view URL:', response.statusText);
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.viewUrl;
+  } catch (error) {
+    console.error('Error getting S3 view URL:', error);
+    return null;
+  }
+}
+

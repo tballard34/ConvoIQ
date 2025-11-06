@@ -5,20 +5,34 @@ type Conversation @table @export {
 	id: ID @primaryKey
 	convo_title: String
 	convo_video_s3_link: String
+	convo_thumbnail_s3_link: String
 	convo_word_transcript_s3_link: String
 	convo_readable_transcript_s3_link: String
 	convo_json_transcript_s3_link: String
+	video_duration_seconds: Float
+	word_count: Int
+	char_count: Int
+	num_speakers: Int
 	status: String
-	createdAt: DateTime
+	createdAt: Date
 }
 
 type Component @table @export {
 	id: ID @primaryKey
-	component_name: String
+	component_title: String
 	component_type: String
 	prompt: String
 	code: String
 	structuredOutput: String
 	uiCode: String
-	createdAt: DateTime
+	status: String
+	createdAt: Date
+}
+
+type Dashboard @table @export {
+	id: ID @primaryKey
+	dashboard_title: String
+	layout: String
+	status: String
+	createdAt: Date
 }

@@ -8,7 +8,7 @@ const HARPERDB_PASSWORD = process.env.HARPERDB_PASSWORD || '';
 // Example LLM component
 const exampleLLMComponent: Component = {
   id: 'comp-llm-001',
-  component_name: 'Call Summary',
+  component_title: 'Call Summary',
   component_type: 'llm',
   prompt: 'Provide a 3-sentence summary of this call, highlighting the key topics discussed and any action items.',
   code: '', // Not used for LLM components
@@ -38,13 +38,14 @@ function CallSummary({ data }) {
   );
 }
   `.trim(),
+  status: 'published',
   createdAt: new Date().toISOString()
 };
 
 // Example code component
 const exampleCodeComponent: Component = {
   id: 'comp-code-001',
-  component_name: 'Speaker Time Analysis',
+  component_title: 'Speaker Time Analysis',
   component_type: 'code',
   prompt: '', // Not used for code components
   code: `
@@ -114,6 +115,7 @@ function SpeakerTimeAnalysis({ data }) {
   );
 }
   `.trim(),
+  status: 'published',
   createdAt: new Date().toISOString()
 };
 
@@ -143,28 +145,35 @@ async function upsertComponent(component: Component): Promise<{ success: boolean
   return text ? JSON.parse(text) : { success: true };
 }
 
-async function seedComponents(): Promise<void> {
-  console.log('🧩 Starting component seed...\n');
-  console.log(`📡 Connecting to: ${HARPERDB_URL}\n`);
+export async function seedComponents(): Promise<void> {
+  console.log('🧩 Seeding components...\n');
 
   try {
     for (const component of components) {
-      console.log(`📝 Seeding component: "${component.component_name}" (${component.component_type})`);
+      console.log(`📝 Seeding component: "${component.component_title}" (${component.component_type})`);
       
       await upsertComponent(component);
       
-      console.log(`  ✅ Component "${component.component_name}" seeded successfully`);
+      console.log(`  ✅ Component "${component.component_title}" seeded successfully`);
     }
 
-    console.log(`\n✨ Database seeded with ${components.length} component(s)!`);
-    console.log('💡 You can run this script again anytime - it\'s idempotent!\n');
+    console.log(`\n✨ Seeded ${components.length} component(s)!`);
 
   } catch (error) {
-    console.error('❌ Error seeding database:', (error as Error).message);
+    console.error('❌ Error seeding components:', (error as Error).message);
     console.error('Full error:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
-seedComponents();
+// Allow running this script directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seedComponents()
+    .then(() => {
+      console.log('💡 You can run this script again anytime - it\'s idempotent!\n');
+    })
+    .catch(() => {
+      process.exit(1);
+    });
+}
 

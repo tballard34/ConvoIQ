@@ -23,28 +23,6 @@ export async function fetchComponents(): Promise<Component[]> {
 }
 
 /**
- * Create a new component
- */
-export async function createComponent(component: Component): Promise<void> {
-  try {
-    const response = await fetch(`${config.harperdbUrl}/Component/${component.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(component)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    console.log('Component created successfully:', component.id);
-  } catch (error) {
-    console.error('Error creating component:', error);
-    throw error;
-  }
-}
-
-/**
  * Fetch a single component by ID
  */
 export async function fetchComponentById(id: string): Promise<Component | null> {
@@ -52,9 +30,6 @@ export async function fetchComponentById(id: string): Promise<Component | null> 
     const response = await fetch(`${config.harperdbUrl}/Component/${id}`);
     
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
@@ -67,22 +42,83 @@ export async function fetchComponentById(id: string): Promise<Component | null> 
 }
 
 /**
- * Delete a component by ID
+ * Create a draft component
  */
-export async function deleteComponent(id: string): Promise<void> {
-  try {
-    const response = await fetch(`${config.harperdbUrl}/Component/${id}`, {
-      method: 'DELETE'
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    console.log('Component deleted successfully:', id);
-  } catch (error) {
-    console.error('Error deleting component:', error);
-    throw error;
+export async function createDraftComponent(): Promise<string> {
+  const id = `comp-${Date.now()}`;
+  
+  const draftComponent: Component = {
+    id,
+    component_title: 'New Component',
+    component_type: 'llm',
+    prompt: '',
+    code: '',
+    structuredOutput: '',
+    uiCode: '',
+    status: 'draft',
+    createdAt: new Date().toISOString()
+  };
+  
+  const response = await fetch(`${config.harperdbUrl}/Component/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(draftComponent)
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to create draft: ${response.statusText}`);
+  }
+  
+  return id;
+}
+
+/**
+ * Update a component
+ */
+export async function updateComponent(component: Component): Promise<void> {
+  const response = await fetch(`${config.harperdbUrl}/Component/${component.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(component)
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to update component: ${response.statusText}`);
   }
 }
 
+/**
+ * Generate a component title using AI with a 10-second timeout
+ */
+export async function generateComponentTitle(
+  prompt: string,
+  structuredOutput: string,
+  uiCode: string
+): Promise<{ thinking: string; title: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+  
+  try {
+    const response = await fetch(`${config.harperdbUrl}/GenerateComponentTitle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, structuredOutput, uiCode }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate title: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return { thinking: data.thinking, title: data.title };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Title generation timed out after 10 seconds');
+    }
+    throw error;
+  }
+}

@@ -15,8 +15,14 @@ graphqlSchema:
 
 # Loads JavaScript modules such that their exports are exported as resources
 jsResource:
-  files: 'resources.js'
+  files: 'operations/backend/resources.js'
 
 # Serve the static files from the web directory as a web application
 static:
   files: 'web/*'
+
+# Fastify routes for custom endpoint handling
+# The spa-fallback route handles client-side routing for the SPA
+fastifyRoutes:
+  files: 'operations/backend/routes/*.js'
+  path: /
