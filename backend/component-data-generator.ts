@@ -5,6 +5,7 @@
  */
 
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { OpenRouter } from '@openrouter/sdk';
 
 // ============================================================================
 // Prompts
@@ -264,14 +265,19 @@ async function callLLM(
 	// Build the prompt
 	const userPrompt = buildUserPrompt(componentPrompt, transcript, structuredOutputSchema);
 
+	// Initialize OpenRouter SDK client
+	const client = new OpenRouter({
+		apiKey: apiKey,
+	});
+
 	// Parse structured output schema for response format
 	let responseFormat: any = undefined;
 	try {
 		const schema = JSON.parse(structuredOutputSchema);
 		// OpenRouter structured outputs API format
 		responseFormat = {
-			type: 'json_schema',
-			json_schema: {
+			type: 'json_schema' as const,
+			jsonSchema: {
 				name: 'component_data',
 				strict: true,
 				schema: schema
@@ -281,42 +287,24 @@ async function callLLM(
 		console.warn('⚠️ Could not parse structured output schema, proceeding without response_format');
 	}
 
-	// Build request body
-	const requestBody: any = {
+	console.log('🤖 Calling OpenRouter via SDK...');
+	
+	// @ts-ignore - SDK types may not include all options
+	const completion = await client.chat.send({
 		model: 'anthropic/claude-4.5-sonnet',
 		messages: [
 			{ role: 'system', content: SYSTEM_PROMPT },
 			{ role: 'user', content: userPrompt }
 		],
 		temperature: 0.7,
-		max_tokens: 8000,
-	};
-
-	// Add response_format if schema was successfully parsed
-	if (responseFormat) {
-		requestBody.response_format = responseFormat;
-	}
-
-	// Call OpenRouter API directly
-	console.log('🤖 Calling OpenRouter API directly...');
-	
-	const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-		method: 'POST',
+		maxTokens: 8000,
+		responseFormat: responseFormat,
+		stream: false,
 		headers: {
-			'Authorization': `Bearer ${apiKey}`,
-			'Content-Type': 'application/json',
 			'HTTP-Referer': 'https://convoiq.dev',
 			'X-Title': 'ConvoIQ',
-		},
-		body: JSON.stringify(requestBody)
+		}
 	});
-
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(`OpenRouter API error: ${response.status} ${errorText}`);
-	}
-
-	const completion = await response.json();
 	
 	// Log provider information
 	console.log('📊 Provider Info:', {
@@ -331,12 +319,24 @@ async function callLLM(
 	}
 
 	// Handle content that might be string or array
-	const contentString = typeof rawContent === 'string' 
+	let contentString = typeof rawContent === 'string' 
 		? rawContent 
 		: JSON.stringify(rawContent);
 
 	// Log the raw response for debugging
 	console.log('📄 Raw LLM response (first 300 chars):', contentString.substring(0, 300));
+	
+	// FALLBACK: Strip markdown code fences if present (Claude sometimes ignores response_format)
+	if (contentString.trim().startsWith('```')) {
+		console.log('⚠️ Detected markdown code fences, stripping them...');
+		contentString = contentString
+			.replace(/^```json\s*/i, '')  // Remove opening ```json
+			.replace(/^```\s*/i, '')       // Remove opening ``` without json
+			.replace(/\s*```$/, '')        // Remove closing ```
+			.trim();
+		console.log('✅ Markdown stripped');
+	}
+	
 	console.log('✅ LLM response received');
 
 	// Parse and validate the response
