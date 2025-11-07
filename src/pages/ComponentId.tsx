@@ -6,8 +6,10 @@ import Editor, { type Monaco } from '@monaco-editor/react';
 import type { Component, Conversation } from '../types/schema';
 import * as componentService from '../services/componentService';
 import * as conversationService from '../services/conversationService';
+import * as componentRunService from '../services/componentRunService';
 import Dropdown from '../components/Dropdown';
 import Agent from '../components/Agent';
+import EmptyPreview from '../components/EmptyPreview';
 
 // Resizable container component
 function ResizableContainer({ 
@@ -134,11 +136,18 @@ export default function ComponentId() {
   const [publishing, setPublishing] = useState(false);
   const [justPublished, setJustPublished] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [lastGenerateSuccess, setLastGenerateSuccess] = useState(false);
 
   // Monaco Editor refs
   const promptEditorRef = useRef<any>(null);
   const structuredOutputEditorRef = useRef<any>(null);
   const uiCodeEditorRef = useRef<any>(null);
+
+  // Debug: Log state changes
+  console.log('🔍 ComponentId render - selectedConvoId:', selectedConvoId);
+  console.log('🔍 Button disabled?', generating || lastGenerateSuccess);
 
   // Configure Monaco for JSX/React support
   function handleMonacoBeforeMount(monaco: Monaco) {
@@ -183,6 +192,11 @@ export default function ComponentId() {
   async function loadConversations() {
     const data = await conversationService.fetchConversations();
     setConversations(data);
+    
+    // Default to first conversation if available
+    if (data && data.length > 0 && !selectedConvoId) {
+      setSelectedConvoId(data[0]!.id);
+    }
   }
 
   function updateField<K extends keyof Component>(field: K, value: Component[K]) {
@@ -233,6 +247,41 @@ export default function ComponentId() {
       console.error('Failed to generate title:', error);
     } finally {
       setGeneratingTitle(false);
+    }
+  }
+
+  async function handleGenerate() {
+    if (!component || !selectedConvoId) return;
+    
+    // Reset states and start generating
+    setGenerating(true);
+    setGenerateError(null);
+    setLastGenerateSuccess(false);
+    
+    try {
+      const result = await componentRunService.generateComponentData(
+        component.id,
+        selectedConvoId
+      );
+      
+      if (result.status === 'succeeded') {
+        console.log('✅ Component data generated successfully');
+        console.log('📊 Generated data:', result.generatedData);
+        
+        // Show success feedback
+        setLastGenerateSuccess(true);
+        setTimeout(() => setLastGenerateSuccess(false), 2000);
+      } else {
+        // Handle failure
+        const errorMsg = result.errorMessage || 'Generation failed';
+        console.error('❌ Generation failed:', errorMsg);
+        setGenerateError(errorMsg);
+      }
+    } catch (error: any) {
+      console.error('❌ Generation error:', error);
+      setGenerateError(error.message || 'Unknown error occurred');
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -504,23 +553,50 @@ export default function ComponentId() {
           <div className="flex h-full flex-col overflow-hidden border-r border-gray-200 bg-white">
           <div className="flex items-center justify-between px-4 py-4 pb-4">
             <h2 className="pr-2 text-lg font-semibold text-gray-900">Preview</h2>
-            <div className="flex items-center gap-3 min-w-0">
-              <Dropdown
-                items={conversations}
-                value={selectedConvoId}
-                onSelect={setSelectedConvoId}
-                getLabel={(convo) => convo.convo_title}
-                getId={(convo) => convo.id}
-                placeholder="Select a convo..."
-                truncateLength={20}
-                className="max-w-[200px]"
-              />
-              <button
-                disabled
-                className="whitespace-nowrap rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white opacity-50"
-              >
-                Generate
-              </button>
+            <div className="flex flex-col items-end gap-2 min-w-0">
+              <div className="flex items-center gap-3">
+                <Dropdown
+                  items={conversations}
+                  value={selectedConvoId}
+                  onSelect={(id) => {
+                    console.log('🔍 Dropdown selected ID:', id);
+                    console.log('🔍 Selected ID type:', typeof id);
+                    console.log('🔍 Selected ID length:', id?.length);
+                    setSelectedConvoId(id);
+                  }}
+                  getLabel={(convo) => convo.convo_title}
+                  getId={(convo) => convo.id}
+                  placeholder="Select a convo..."
+                  truncateLength={20}
+                  className="max-w-[200px]"
+                />
+                <button
+                  onClick={() => {
+                    console.log('🔍 Button clicked, selectedConvoId:', selectedConvoId);
+                    handleGenerate();
+                  }}
+                  disabled={generating || lastGenerateSuccess}
+                  className="whitespace-nowrap rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {lastGenerateSuccess && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {generating && (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                  {generating ? 'Generating...' : lastGenerateSuccess ? 'Generated' : 'Generate'}
+                </button>
+              </div>
+              {generateError && (
+                <div className="text-xs text-red-600">
+                  {generateError}
+                </div>
+              )}
             </div>
           </div>
 
@@ -538,8 +614,13 @@ export default function ComponentId() {
           >
             {/* Centered Preview Component */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="flex h-64 w-96 items-center justify-center rounded-lg border-2 border-gray-300 bg-white shadow-sm">
-                <p className="text-sm text-gray-500">Example Component</p>
+              <div className="h-64 w-96 shadow-sm">
+                <EmptyPreview
+                  type="component"
+                  flexible={true}
+                  overlayTitle={component.component_title || 'Untitled Component'}
+                  overlaySubtitle={component.component_type}
+                />
               </div>
             </div>
           </div>

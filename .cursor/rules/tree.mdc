@@ -14,32 +14,66 @@ $ tree -a -I '__pycache__|*.pyc|node_modules|dist|.pnpm|coverage|.venv|venv|*.lo
 │       └── tree.mdc
 ├── .env
 ├── .env.example
+├── .env.prod
 ├── .gitignore
+├── backend
+│   ├── agent-prompts.ts
+│   ├── agent-tools.ts
+│   ├── resources.ts
+│   ├── routes
+│   │   └── spa-fallback.ts
+│   └── title-generators.ts
 ├── config.yaml
+├── favicon.ico
 ├── index.html
 ├── LICENSE
+├── operations
+│   ├── backend
+│   │   ├── agent-prompts.js
+│   │   ├── agent-tools.js
+│   │   ├── resources.js
+│   │   ├── routes
+│   │   │   └── spa-fallback.js
+│   │   └── title-generators.js
+│   └── src
+│       └── types
+│           └── schema.js
 ├── package-lock.json
 ├── package.json
 ├── README.md
-├── resources.js
-├── resources.ts
 ├── schema.graphql
 ├── scripts
 │   ├── generate-tree-rule.js
+│   ├── seed-components.ts
+│   ├── seed-convos.ts
+│   ├── seed-dashboards.ts
 │   └── seed.ts
 ├── src
 │   ├── App.tsx
+│   ├── components
+│   │   ├── Agent.tsx
+│   │   ├── DashboardIdEdit.tsx
+│   │   ├── DashboardIdView.tsx
+│   │   ├── Dropdown.tsx
+│   │   ├── EmptyPreview.tsx
+│   │   ├── Layout.tsx
+│   │   └── Logo.tsx
 │   ├── config.ts
 │   ├── index.css
 │   ├── lib
-│   │   └── s3Client.ts
 │   ├── main.tsx
 │   ├── pages
+│   │   ├── ComponentId.tsx
 │   │   ├── Components.tsx
+│   │   ├── ConvoId.tsx
 │   │   ├── Convos.tsx
+│   │   ├── DashboardId.tsx
 │   │   └── Dashboards.tsx
 │   ├── services
-│   │   └── conversationService.ts
+│   │   ├── agentService.ts
+│   │   ├── componentService.ts
+│   │   ├── conversationService.ts
+│   │   └── dashboardService.ts
 │   ├── types
 │   │   ├── harperdb.d.ts
 │   │   ├── schema.js
@@ -48,8 +82,9 @@ $ tree -a -I '__pycache__|*.pyc|node_modules|dist|.pnpm|coverage|.venv|venv|*.lo
 ├── tsconfig.json
 ├── vite.config.ts
 └── web
-    ├── index-By3LOJ0Y.css
-    ├── index-DpdHOFxQ.js
+    ├── favicon-KOuu-QLv.ico
+    ├── index-Cb8APx5M.js
+    ├── index-DglmhLOn.css
     └── index.html
 
-10 directories, 33 files
+18 directories, 60 files

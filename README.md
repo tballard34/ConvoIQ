@@ -2,6 +2,10 @@
 
 AI-powered conversation analysis tool built with [Harper](https://www.harper.fast/).
 
+## How it works
+
+<insert Loom>
+
 ## Installation
 
 To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper), which can be done quickly:
@@ -10,8 +14,27 @@ To get started, make sure you have [installed Harper](https://docs.harperdb.io/d
 npm install -g harperdb
 ```
 
-## Development
+Then install packages
 
+```sh
+npm install
+```
+
+## Local Development
+
+### Env file setup
+First copy the `.env.example` file to a `.env.local` file and set up env vars
+```sh
+cp .env.example .env.local
+```
+
+Now you will need a couple things
+1. Setup an AWS bucket named `convoiq-convos-local`, give it correct CORS access and bucket policy
+2. Setup an IAM user with S3AdminAccess policy and mint an s3 key, use this keys values in the `S3_ACCESS_KEY_ID` & `S3_SECRET_ACCESS_KEY` env vars
+3. Create account and get a key from [Google DeepGram](https://deepgram.com/voice-ai-platform) (used for transcription). As of 11/6/2025 they give $200 in free credits when you create an account. Replace `DEEPGRAM_API_KEY` with your deepgram key
+4. Create account and get a key from [Open Router](https://openrouter.ai/) (used for LLMs). As of 11/6/2025 tehy give $5 in free credits when you create an account. Replace `OPENROUTER_API_KEY` with your openrouter key
+
+### Run
 Then you can start your app:
 ```sh
 npm run dev
@@ -31,13 +54,8 @@ You should see the following:
 
 Navigate to [http://localhost:9926](http://localhost:9926) in a browser and view the functional web application.
 
-## Deployment
+## Deploy to Prod
 
-Below is the live site
-```
-https://trent-hacks.trent-ballard-org.harperfabric.com/
-```
+To Deploy look at Harpers docs to create an organization, cluster, and deploy to a cluster
 
-You can [deploy via CLI to your own cluster](https://docs.harperdb.io/docs/getting-started/quickstart#deploy-to-fabric) or via the Harper Fabric UI
-
-For this project, I'll be using the URL above
+[Harper docs](https://docs.harperdb.io/docs)

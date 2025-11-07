@@ -25,4 +25,4 @@ static:
 # The spa-fallback route handles client-side routing for the SPA
 fastifyRoutes:
   files: 'operations/backend/routes/*.js'
-  path: /
+  urlPath: /

@@ -607,6 +607,33 @@ export class GenerateDashboardTitle extends Resource {
         }
     }
 }
+// Generate component data from conversation transcript
+// Usage: POST /GenerateComponentData with body { componentId: string, conversationId: string }
+export class GenerateComponentData extends Resource {
+    static loadAsInstance = true;
+    async post(body) {
+        console.log('🔮 GenerateComponentData received request');
+        const { componentId, conversationId } = body;
+        // Validate required clients
+        const s3 = getS3Client();
+        if (!s3) {
+            throw new Error('S3 client not initialized. Check AWS credentials in environment variables.');
+        }
+        if (!OPENROUTER_API_KEY) {
+            throw new Error('OpenRouter API key not configured. Check OPENROUTER_API_KEY environment variable.');
+        }
+        // Import and call the generator
+        const { generateComponentData } = await import('./component-data-generator.js');
+        return generateComponentData({
+            componentId,
+            conversationId,
+            harperdbUrl: process.env.VITE_HARPERDB_URL || 'http://localhost:9926',
+            s3Client: s3,
+            openRouterApiKey: OPENROUTER_API_KEY,
+            s3BucketName: S3_CONVOS_BUCKET_NAME,
+        });
+    }
+}
 // Agent endpoint for component editing
 export class RunAgent extends Resource {
     static loadAsInstance = true;
@@ -690,6 +717,10 @@ export class RunAgent extends Resource {
                         temperature: 0.7,
                         maxTokens: 10000,
                         stream: true, // Enable streaming
+                        headers: {
+                            'HTTP-Referer': 'https://convoiq.dev',
+                            'X-Title': 'ConvoIQ',
+                        },
                     });
                     // Process streaming response
                     let currentMessageId = `msg-${messageIdCounter++}`;

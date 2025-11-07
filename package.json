@@ -14,8 +14,8 @@
     "seed": "tsx scripts/seed.ts",
     "seed:convos": "tsx scripts/seed-convos.ts",
     "seed:components": "tsx scripts/seed-components.ts",
-    "login": "bash -c 'read -r -p \"Cluster URL: \" URL; read -r -p \"Cluster Username: \" USERNAME; read -r -s -p \"Cluster Password: \" PASSWORD; echo; printf \"CLI_TARGET='%s'\\nCLI_TARGET_USERNAME='%s'\\nCLI_TARGET_PASSWORD='%s'\\n\" \"$URL\" \"$USERNAME\" \"$PASSWORD\" > .env'",
-    "deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true",
+    "deploy": "npx -y dotenv-cli -e .env.prod -- harperdb deploy project=convoiq target=${CLI_TARGET} username=${CLI_TARGET_USERNAME} password=${CLI_TARGET_PASSWORD} restart=true replicated=true",
+    "deploy:build": "npm run build && npm run deploy",
     "generate-tree": "node scripts/generate-tree-rule.js"
   },
   "dependencies": {

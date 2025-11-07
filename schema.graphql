@@ -36,3 +36,14 @@ type Dashboard @table @export {
 	status: String
 	createdAt: Date
 }
+
+type ComponentRun @table @export {
+	id: ID @primaryKey
+	componentId: ID @indexed
+	conversationId: ID @indexed
+	generatedData: String
+	status: String
+	errorMessage: String
+	createdAt: Date
+	completedAt: Date
+}
