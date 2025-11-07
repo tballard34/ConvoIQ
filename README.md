@@ -4,7 +4,23 @@ AI-powered conversation analysis tool built with [Harper](https://www.harper.fas
 
 ## How it works
 
-<insert Loom>
+https://www.loom.com/share/56db97f4d2724ac3956f379ada78b730
+
+## Description
+
+Imagine it? Create it.
+
+ConvoIQ is an innovative conversation intelligence platform that allows you to create custom dashboards through AI for any conversations.
+
+Imagine you're a sales rep and you need to track your filler words. Or when the client shows buying intent. Or imagine you want a sales coach in your pocket to tell you your there biggest strengths and weaknesses on the call.
+
+Or imagine you're a project manager and you want to know the three biggest takeaways you had from talking with a customer. Or what your follow-up items are.
+
+All of these are possible with ConvoIQ.
+
+## View live
+
+https://convo-iq.trent-ballard-org.harperfabric.com/
 
 ## Installation
 

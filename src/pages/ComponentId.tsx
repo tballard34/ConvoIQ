@@ -10,6 +10,7 @@ import * as componentRunService from '../services/componentRunService';
 import Dropdown from '../components/Dropdown';
 import Agent from '../components/Agent';
 import EmptyPreview from '../components/EmptyPreview';
+import { DynamicComponent } from '../lib/renderComponent';
 
 // Resizable container component
 function ResizableContainer({ 
@@ -139,6 +140,7 @@ export default function ComponentId() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [lastGenerateSuccess, setLastGenerateSuccess] = useState(false);
+  const [generatedData, setGeneratedData] = useState<string | null>(null); // JSON string from ComponentRun
 
   // Monaco Editor refs
   const promptEditorRef = useRef<any>(null);
@@ -257,6 +259,7 @@ export default function ComponentId() {
     setGenerating(true);
     setGenerateError(null);
     setLastGenerateSuccess(false);
+    setGeneratedData(null); // Clear previous data
     
     try {
       const result = await componentRunService.generateComponentData(
@@ -267,6 +270,12 @@ export default function ComponentId() {
       if (result.status === 'succeeded') {
         console.log('✅ Component data generated successfully');
         console.log('📊 Generated data:', result.generatedData);
+        
+        // Store the generated data for rendering
+        const dataJson = typeof result.generatedData === 'string' 
+          ? result.generatedData 
+          : JSON.stringify(result.generatedData);
+        setGeneratedData(dataJson);
         
         // Show success feedback
         setLastGenerateSuccess(true);
@@ -614,14 +623,25 @@ export default function ComponentId() {
           >
             {/* Centered Preview Component */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="h-64 w-96 shadow-sm">
-                <EmptyPreview
-                  type="component"
-                  flexible={true}
-                  overlayTitle={component.component_title || 'Untitled Component'}
-                  overlaySubtitle={component.component_type}
-                />
-              </div>
+              {generatedData && component.uiCode ? (
+                // Render the dynamically generated component
+                <div className="shadow-lg">
+                  <DynamicComponent 
+                    uiCode={component.uiCode}
+                    generatedDataJson={generatedData}
+                  />
+                </div>
+              ) : (
+                // Show empty state when no data
+                <div className="h-64 w-96 shadow-sm">
+                  <EmptyPreview
+                    type="component"
+                    flexible={true}
+                    overlayTitle={component.component_title || 'Untitled Component'}
+                    overlaySubtitle={component.component_type}
+                  />
+                </div>
+              )}
             </div>
           </div>
           </div>

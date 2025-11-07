@@ -14,13 +14,14 @@
     "seed": "tsx scripts/seed.ts",
     "seed:convos": "tsx scripts/seed-convos.ts",
     "seed:components": "tsx scripts/seed-components.ts",
-    "deploy": "npx -y dotenv-cli -e .env.prod -- harperdb deploy project=convoiq target=${CLI_TARGET} username=${CLI_TARGET_USERNAME} password=${CLI_TARGET_PASSWORD} restart=true replicated=true",
+    "deploy": "npx -y dotenv-cli -e .env.local -- harperdb deploy project=convoiq target=${CLI_TARGET} username=${CLI_TARGET_USERNAME} password=${CLI_TARGET_PASSWORD} restart=true replicated=true",
     "deploy:build": "npm run build && npm run deploy",
     "generate-tree": "node scripts/generate-tree-rule.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
     "@aws-sdk/s3-request-presigner": "^3.922.0",
+    "@babel/standalone": "^7.28.5",
     "@deepgram/sdk": "^4.11.2",
     "@monaco-editor/react": "^4.7.0",
     "@openrouter/sdk": "^0.1.0",
