@@ -48,7 +48,7 @@ Now you will need a couple things
 1. Setup an AWS bucket named `convoiq-convos-local`, give it correct CORS access and bucket policy
 2. Setup an IAM user with S3AdminAccess policy and mint an s3 key, use this keys values in the `S3_ACCESS_KEY_ID` & `S3_SECRET_ACCESS_KEY` env vars
 3. Create account and get a key from [Google DeepGram](https://deepgram.com/voice-ai-platform) (used for transcription). As of 11/6/2025 they give $200 in free credits when you create an account. Replace `DEEPGRAM_API_KEY` with your deepgram key
-4. Create account and get a key from [Open Router](https://openrouter.ai/) (used for LLMs). As of 11/6/2025 tehy give $5 in free credits when you create an account. Replace `OPENROUTER_API_KEY` with your openrouter key
+4. Create account and get a key from [Open Router](https://openrouter.ai/) (used for LLMs). As of 11/6/2025 they give $5 in free credits when you create an account. Replace `OPENROUTER_API_KEY` with your openrouter key
 
 ### Run
 Then you can start your app:
