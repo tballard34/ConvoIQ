@@ -4,7 +4,7 @@
 
 # Load Environment Variables from the specified file
 loadEnv:
-  files: '.env.local'
+  files: '.env.production'
   override: true
 
 # This provides the HTTP REST interface for all exported resources
@@ -20,7 +20,7 @@ jsResource:
 
 # Serve the static files from the web directory as a web application
 static:
-  files: 'web/*'
+  files: 'web/**'
 
 # Fastify routes for custom endpoint handling
 # The spa-fallback route handles client-side routing for the SPA
